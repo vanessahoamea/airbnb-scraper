@@ -1,0 +1,2 @@
+# airbnb-scraper
+This is a program that scrapes Airbnb search results for a given location and returns the best listings for someone looking for a fully-private rental. The privacy score is determined by analyzing the data provided by the owners and matching it against a predefined set of keywords.
