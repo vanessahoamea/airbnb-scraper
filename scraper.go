@@ -1,12 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"os"
+	"path/filepath"
+	"runtime"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/launcher"
 	"github.com/vanessahoamea/airbnb-scraper/utils"
 )
 
@@ -22,7 +28,13 @@ func (s *scraper) start() {
 	// initialize wait group, semaphore channel and browser instance
 	wg := sync.WaitGroup{}
 	ch := make(chan int, 10)
-	s.browser = rod.New().MustConnect()
+
+	if runtime.GOOS == "windows" {
+		u := launcher.New().Leakless(false).MustLaunch()
+		s.browser = rod.New().ControlURL(u).MustConnect()
+	} else {
+		s.browser = rod.New().MustConnect()
+	}
 	defer s.browser.MustClose()
 
 	// access given URL
@@ -33,10 +45,11 @@ func (s *scraper) start() {
 	close(ch)
 	fmt.Println("Done!")
 
-	// TODO: output results
-	// for _, home := range s.homes {
-	// 	fmt.Println(home.description)
-	// }
+	// output results
+	sort.Slice(s.homes, func(i, j int) bool {
+		return s.homes[i].score < s.homes[j].score
+	})
+	s.writeToFile()
 }
 
 func (s *scraper) handlePage(url string, count int, wg *sync.WaitGroup, ch *chan int) {
@@ -108,4 +121,29 @@ func (s *scraper) handleListing(listing *rod.Element, wg *sync.WaitGroup, ch *ch
 	}
 
 	s.homes = append(s.homes, &home)
+}
+
+func (s *scraper) writeToFile() {
+	distPath := filepath.Join(".", "results")
+	err := os.MkdirAll(distPath, os.ModePerm)
+	if err != nil {
+		fmt.Println("[ERROR] Could not create results directory:", err)
+		return
+	}
+
+	file, err := os.Create("./results/output.json")
+	if err != nil || file == nil {
+		fmt.Println("[ERROR] Could not open output file:", err)
+		return
+	}
+
+	defer file.Close()
+
+	json, err := json.MarshalIndent(s.homes, "", "\t")
+	if err != nil || len(json) == 0 {
+		fmt.Println("[ERROR] Failed to transform data into JSON:", err)
+		return
+	}
+
+	file.Write(json)
 }
