@@ -1,6 +1,10 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"time"
+
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
 	"github.com/vanessahoamea/airbnb-scraper/utils"
@@ -17,9 +21,11 @@ type home struct {
 
 func (h *home) parse(page *rod.Page) error {
 	// close translation modal, if needed
-	translationButton, err := page.Element(utils.TranslationButtonSelector)
+	translationButton, err := page.Timeout(10 * time.Second).Element(utils.TranslationButtonSelector)
 	if err != nil {
-		return err
+		if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, &rod.ElementNotFoundError{}) {
+			return err
+		}
 	} else if translationButton != nil {
 		err = translationButton.Click(proto.InputMouseButtonLeft, 1)
 		if err != nil {
@@ -57,31 +63,35 @@ func (h *home) parse(page *rod.Page) error {
 	}
 
 	// click description button
-	descriptionButton, err := page.Element(utils.DescriptionButtonSelector)
+	descriptionButton, err := page.Timeout(10 * time.Second).ElementX(utils.DescriptionButtonSelector)
 	if err != nil || descriptionButton == nil {
-		return err
-	}
-
-	err = descriptionButton.ScrollIntoView()
-	if err != nil {
-		return err
-	}
-
-	err = descriptionButton.Click(proto.InputMouseButtonLeft, 1)
-	if err != nil {
-		return err
-	}
-
-	err = page.WaitElementsMoreThan(utils.DescriptionModalSelector, 0)
-	if err != nil {
-		return err
-	}
-
-	description, err := extractTextFromElement(page, utils.DescriptionModalSelector)
-	if err != nil {
-		return err
+		if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, &rod.ElementNotFoundError{}) {
+			return err
+		} else {
+			shortDescription, err := extractTextFromElement(page, utils.ShortDescriptionSelector)
+			if err != nil {
+				return err
+			} else {
+				h.description = shortDescription
+			}
+		}
 	} else {
-		h.description = description
+		err = descriptionButton.ScrollIntoView()
+		if err != nil {
+			return err
+		}
+
+		err = descriptionButton.Click(proto.InputMouseButtonLeft, 1)
+		if err != nil {
+			return err
+		}
+
+		description, err := extractTextFromElement(page, utils.DescriptionModalSelector)
+		if err != nil {
+			return err
+		} else {
+			h.description = description
+		}
 	}
 
 	// TODO: compute score

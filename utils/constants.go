@@ -10,6 +10,7 @@ const (
 	TitleSelector             = "#site-content > div > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div > div > div > div > div > section > div > div._t0tx82 > div > h1"
 	TypeAndLocationSelector   = "#site-content > div > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div > div._16e70jgn > div > div:nth-child(1) > div > div > div > section > div.t1kjrihn.atm_c8_3w7ag0.atm_g3_1emqlh9.atm_fr_helst.atm_cs_1mexzig.atm_c8_21sjza__oggzyc.atm_g3_1wvsxh1__oggzyc.atm_fr_1t2fc69__oggzyc.atm_cs_1mexzig__oggzyc.dir.dir-ltr > h2"
 	OverviewSelector          = "#site-content > div > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div > div._16e70jgn > div > div:nth-child(1) > div > div > div > section > div.ok4wssy.atm_c8_1h3mmnw.atm_g3_1vnrj90.atm_fr_b3emyl.atm_h3_1y44olf.atm_c8_3w7ag0__oggzyc.atm_g3_1emqlh9__oggzyc.atm_fr_helst__oggzyc.dir.dir-ltr > ol"
-	DescriptionButtonSelector = "#site-content > div > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div > div._16e70jgn > div > div:nth-child(6) > div > div > div.sx1pl6d.atm_h3_opxopj.dir.dir-ltr > button"
-	DescriptionModalSelector  = "body > div:nth-child(13) > div > div > section > div > div > div.p1psejvv.atm_9s_1bgihbq.dir.dir-ltr > div > div._1jza0fl > section > div > div > div > div > div > div > div"
+	ShortDescriptionSelector  = "#site-content > div > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div > div._16e70jgn > div > div:nth-child(6) > div > div > div > div > span > span"
+	DescriptionButtonSelector = "//*[contains(@aria-label, 'Show more about this place')]"
+	DescriptionModalSelector  = "section > div > div > div.p1psejvv.atm_9s_1bgihbq.dir.dir-ltr > div > div._1jza0fl > section > div > div > div > div > div > div > div"
 )

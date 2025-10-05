@@ -21,7 +21,7 @@ func (s *scraper) start() {
 
 	// initialize wait group, semaphore channel and browser instance
 	wg := sync.WaitGroup{}
-	ch := make(chan int, 1)
+	ch := make(chan int, 10)
 	s.browser = rod.New().MustConnect()
 	defer s.browser.MustClose()
 
@@ -32,6 +32,11 @@ func (s *scraper) start() {
 	wg.Wait()
 	close(ch)
 	fmt.Println("Done!")
+
+	// TODO: output results
+	// for _, home := range s.homes {
+	// 	fmt.Println(home.description)
+	// }
 }
 
 func (s *scraper) handlePage(url string, count int, wg *sync.WaitGroup, ch *chan int) {
@@ -40,12 +45,7 @@ func (s *scraper) handlePage(url string, count int, wg *sync.WaitGroup, ch *chan
 	defer page.MustClose()
 
 	// wait for elements to load
-	err := page.WaitElementsMoreThan(utils.ListingSelector, 0)
-	if err != nil {
-		fmt.Println("[ERROR] Could not load page", count)
-		return
-	}
-
+	time.Sleep(5 * time.Second)
 	fmt.Printf("[PAGE %d] Finished loading, now fetching listings\n", count)
 
 	// get all listings
@@ -95,13 +95,13 @@ func (s *scraper) handleListing(listing *rod.Element, wg *sync.WaitGroup, ch *ch
 	}()
 
 	// set random delay before starting work
-	n := rand.Intn(10) + 1
+	n := rand.Intn(6) + 5
 	fmt.Printf("Will start parsing after a delay of %d seconds\n", n)
 	time.Sleep(time.Duration(n) * time.Second)
 
 	// parse page content and convert to home object
 	home := home{}
-	err = home.parse(page.Timeout(10 * time.Second))
+	err = home.parse(page)
 	if err != nil {
 		fmt.Println("[ERROR] Could not parse home listing:", err)
 		return
