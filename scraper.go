@@ -18,24 +18,15 @@ import (
 
 type scraper struct {
 	inputUrl string
-	browser  *rod.Browser
 	homes    []*home
 }
 
 func (s *scraper) start() {
 	fmt.Println("Starting work...")
 
-	// initialize wait group, semaphore channel and browser instance
+	// initialize wait group and semaphore channel
 	wg := sync.WaitGroup{}
-	ch := make(chan int, 10)
-
-	if runtime.GOOS == "windows" {
-		u := launcher.New().Leakless(false).MustLaunch()
-		s.browser = rod.New().ControlURL(u).MustConnect()
-	} else {
-		s.browser = rod.New().MustConnect()
-	}
-	defer s.browser.MustClose()
+	ch := make(chan int, 5)
 
 	// access given URL
 	s.handlePage(s.inputUrl, 1, &wg, &ch)
@@ -54,8 +45,13 @@ func (s *scraper) start() {
 
 func (s *scraper) handlePage(url string, count int, wg *sync.WaitGroup, ch *chan int) {
 	// navigate to current page
-	page := s.browser.MustPage(url)
-	defer page.MustClose()
+	browser := openBrowser()
+	page := browser.MustPage(url)
+
+	defer func() {
+		page.MustClose()
+		browser.MustClose()
+	}()
 
 	// wait for elements to load
 	time.Sleep(5 * time.Second)
@@ -98,11 +94,13 @@ func (s *scraper) handleListing(listing *rod.Element, wg *sync.WaitGroup, ch *ch
 		return
 	}
 
-	page := s.browser.MustPage(listingUrl.Str())
+	browser := openBrowser()
+	page := browser.MustPage(listingUrl.Str())
 
 	// defer cleanup code
 	defer func() {
 		page.MustClose()
+		browser.MustClose()
 		<-*ch
 		wg.Done()
 	}()
@@ -146,4 +144,13 @@ func (s *scraper) writeToFile() {
 	}
 
 	file.Write(json)
+}
+
+func openBrowser() *rod.Browser {
+	if runtime.GOOS == "windows" {
+		u := launcher.New().Leakless(false).MustLaunch()
+		return rod.New().ControlURL(u).MustConnect()
+	} else {
+		return rod.New().MustConnect()
+	}
 }

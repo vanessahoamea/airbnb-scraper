@@ -97,7 +97,7 @@ func (h *home) parse(page *rod.Page) error {
 	}
 
 	// compute score
-	normalizedText, err := normalizeText(h.Description)
+	normalizedText, err := h.normalizeText()
 	if err != nil {
 		return err
 	} else {
@@ -105,6 +105,31 @@ func (h *home) parse(page *rod.Page) error {
 	}
 
 	return nil
+}
+
+func (h *home) normalizeText() (string, error) {
+	fullText := strings.Join([]string{
+		h.Title,
+		h.TypeAndLocation,
+		h.Overview,
+		h.Description,
+	}, "\n")
+	result := strings.ToLower(fullText)
+
+	alphanumericRegex, err := regexp.Compile("[^a-z0-9 ]+")
+	if err != nil {
+		return "", err
+	}
+	result = alphanumericRegex.ReplaceAllString(result, "")
+
+	spaceRegex, err := regexp.Compile(`\s+`)
+	if err != nil {
+		return "", err
+	}
+	result = spaceRegex.ReplaceAllString(result, " ")
+	result = strings.TrimSpace(result)
+
+	return result, nil
 }
 
 func (h *home) computeScore(normalizedText string) float64 {
@@ -143,23 +168,4 @@ func extractTextFromElement(page *rod.Page, selector string) (string, error) {
 	}
 
 	return text, nil
-}
-
-func normalizeText(text string) (string, error) {
-	result := strings.ToLower(text)
-
-	alphanumericRegex, err := regexp.Compile("[^a-z0-9 ]+")
-	if err != nil {
-		return "", err
-	}
-	result = alphanumericRegex.ReplaceAllString(result, "")
-
-	spaceRegex, err := regexp.Compile(`\s+`)
-	if err != nil {
-		return "", err
-	}
-	result = spaceRegex.ReplaceAllString(result, " ")
-	result = strings.TrimSpace(result)
-
-	return result, nil
 }
