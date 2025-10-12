@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"errors"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -11,17 +13,17 @@ import (
 )
 
 type home struct {
-	url             string
-	title           string
-	typeAndLocation string
-	overview        string
-	description     string
-	score           float64 // positive keyword count divided by total keyword count
+	Url             string  `json:"url"`
+	Title           string  `json:"title"`
+	TypeAndLocation string  `json:"type_and_location"`
+	Overview        string  `json:"overview"`
+	Description     string  `json:"description"`
+	Score           float64 `json:"score"`
 }
 
 func (h *home) parse(page *rod.Page) error {
 	// close translation modal, if needed
-	translationButton, err := page.Timeout(10 * time.Second).Element(utils.TranslationButtonSelector)
+	translationButton, err := page.Timeout(20 * time.Second).Element(utils.TranslationButtonSelector)
 	if err != nil {
 		if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, &rod.ElementNotFoundError{}) {
 			return err
@@ -38,32 +40,32 @@ func (h *home) parse(page *rod.Page) error {
 	if err != nil || info == nil {
 		return err
 	} else {
-		h.url = info.URL
+		h.Url = info.URL
 	}
 
 	title, err := extractTextFromElement(page, utils.TitleSelector)
 	if err != nil {
 		return err
 	} else {
-		h.title = title
+		h.Title = title
 	}
 
 	typeAndLocation, err := extractTextFromElement(page, utils.TypeAndLocationSelector)
 	if err != nil {
 		return err
 	} else {
-		h.typeAndLocation = typeAndLocation
+		h.TypeAndLocation = typeAndLocation
 	}
 
 	overview, err := extractTextFromElement(page, utils.OverviewSelector)
 	if err != nil {
 		return err
 	} else {
-		h.overview = overview
+		h.Overview = overview
 	}
 
 	// click description button
-	descriptionButton, err := page.Timeout(10 * time.Second).ElementX(utils.DescriptionButtonSelector)
+	descriptionButton, err := page.Timeout(20 * time.Second).ElementX(utils.DescriptionButtonSelector)
 	if err != nil || descriptionButton == nil {
 		if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, &rod.ElementNotFoundError{}) {
 			return err
@@ -72,7 +74,7 @@ func (h *home) parse(page *rod.Page) error {
 			if err != nil {
 				return err
 			} else {
-				h.description = shortDescription
+				h.Description = shortDescription
 			}
 		}
 	} else {
@@ -90,18 +92,47 @@ func (h *home) parse(page *rod.Page) error {
 		if err != nil {
 			return err
 		} else {
-			h.description = description
+			h.Description = description
 		}
 	}
 
-	// TODO: compute score
-	h.score = 0
+	// compute score
+	normalizedText, err := normalizeText(h.Description)
+	if err != nil {
+		return err
+	} else {
+		h.Score = h.computeScore(normalizedText)
+	}
 
 	return nil
 }
 
+func (h *home) computeScore(normalizedText string) float64 {
+	positiveMatches, negativeMatches := 0, 0
+
+	for _, keyword := range utils.PositiveKeywords {
+		if strings.Contains(normalizedText, keyword) {
+			positiveMatches++
+		}
+	}
+
+	for _, keyword := range utils.NegativeKeywords {
+		if strings.Contains(normalizedText, keyword) {
+			negativeMatches++
+		}
+	}
+
+	totalMatches := positiveMatches + negativeMatches
+
+	if totalMatches == 0 {
+		return 0.0
+	}
+
+	return float64(positiveMatches) / float64(totalMatches)
+}
+
 func extractTextFromElement(page *rod.Page, selector string) (string, error) {
-	element, err := page.Element(selector)
+	element, err := page.Timeout(20 * time.Second).Element(selector)
 	if err != nil || element == nil {
 		return "", err
 	}
@@ -112,4 +143,23 @@ func extractTextFromElement(page *rod.Page, selector string) (string, error) {
 	}
 
 	return text, nil
+}
+
+func normalizeText(text string) (string, error) {
+	result := strings.ToLower(text)
+
+	alphanumericRegex, err := regexp.Compile("[^a-z0-9 ]+")
+	if err != nil {
+		return "", err
+	}
+	result = alphanumericRegex.ReplaceAllString(result, "")
+
+	spaceRegex, err := regexp.Compile(`\s+`)
+	if err != nil {
+		return "", err
+	}
+	result = spaceRegex.ReplaceAllString(result, " ")
+	result = strings.TrimSpace(result)
+
+	return result, nil
 }

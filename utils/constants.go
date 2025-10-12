@@ -6,7 +6,7 @@ const (
 	ListingSelector        = "#site-content > div.fwts1ay.atm_gq_1itn57d.atm_h3_dlk8xv.dir.dir-ltr > div > div > div > div > div > div > div > div.cfutgp0.atm_d2_1kqhmmj.dir.dir-ltr > div > div > div > div > a"
 
 	// single home page
-	TranslationButtonSelector = "body > div:nth-child(16) > div > div > section > div > div > div.p1psejvv.atm_9s_1bgihbq.dir.dir-ltr > div > div.c1lbtiq8.atm_mk_stnw88.atm_9s_1txwivl.atm_fq_1tcgj5g.atm_wq_kb7nvz.atm_tk_1tcgj5g.dir.dir-ltr > button"
+	TranslationButtonSelector = "div > div > section > div > div > div.p1psejvv.atm_9s_1bgihbq.dir.dir-ltr > div > div.c1lbtiq8.atm_mk_stnw88.atm_9s_1txwivl.atm_fq_1tcgj5g.atm_wq_kb7nvz.atm_tk_1tcgj5g.dir.dir-ltr > button"
 	TitleSelector             = "#site-content > div > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div > div > div > div > div > section > div > div._t0tx82 > div > h1"
 	TypeAndLocationSelector   = "#site-content > div > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div > div._16e70jgn > div > div:nth-child(1) > div > div > div > section > div.t1kjrihn.atm_c8_3w7ag0.atm_g3_1emqlh9.atm_fr_helst.atm_cs_1mexzig.atm_c8_21sjza__oggzyc.atm_g3_1wvsxh1__oggzyc.atm_fr_1t2fc69__oggzyc.atm_cs_1mexzig__oggzyc.dir.dir-ltr > h2"
 	OverviewSelector          = "#site-content > div > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div > div._16e70jgn > div > div:nth-child(1) > div > div > div > section > div.ok4wssy.atm_c8_1h3mmnw.atm_g3_1vnrj90.atm_fr_b3emyl.atm_h3_1y44olf.atm_c8_3w7ag0__oggzyc.atm_g3_1emqlh9__oggzyc.atm_fr_helst__oggzyc.dir.dir-ltr > ol"

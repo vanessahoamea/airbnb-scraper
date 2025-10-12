@@ -47,7 +47,7 @@ func (s *scraper) start() {
 
 	// output results
 	sort.Slice(s.homes, func(i, j int) bool {
-		return s.homes[i].score < s.homes[j].score
+		return s.homes[i].Score > s.homes[j].Score
 	})
 	s.writeToFile()
 }
